@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculator</title>
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --calc-bg: #ffffff;
+      --text: #000;
+      --btn-bg: #ffffff;
+      --btn-text: #000;
+      --op-color: #3b82f6;
+      --eq-bg: #3b82f6;
+      --eq-text: #fff;
+      --clear-color: #ef4444;
+      --glow: rgba(59, 130, 246, 0.6);
+    }
+    
+    body.dark {
+      --bg: #1a1a1a;
+      --calc-bg: #2d2d2d;
+      --text: #fff;
+      --btn-bg: #3a3a3a;
+      --btn-text: #fff;
+      --glow: rgba(59, 130, 246, 0.8);
+    }
+    
+    body.darkblue {
+      --bg: #0f172a;
+      --calc-bg: #1e293b;
+      --text: #fff;
+      --btn-bg: #334155;
+      --btn-text: #fff;
+      --glow: rgba(59, 130, 246, 0.8);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      transition: 0.3s;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px;
+    }
+
+    .topbar button {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .display {
+      flex: 1;
+      padding: 20px;
+      text-align: right;
+      overflow-y: auto;
+    }
+
+    #history {
+      font-size: 16px;
+      opacity: 0.6;
+      min-height: 20px;
+    }
+
+    #output {
+      font-size: 48px;
+      margin-top: 10px;
+      word-wrap: break-word;
+    }
+
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 15px;
+      background: var(--calc-bg);
+      border-radius: 20px 20px 0 0;
+    }
+
+    button {
+      border: none;
+      border-radius: 50px;
+      height: 65px;
+      font-size: 22px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      cursor: pointer;
+      transition: 0.1s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 15px var(--glow);
+    }
+
+    .op { color: var(--op-color); }
+    .clear { color: var(--clear-color); }
+    .equals {
+      grid-row: span 2;
+      background: var(--eq-bg);
+      color: var(--eq-text);
+      border-radius: 50px;
+    }
+
+    .settings {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 250px;
+      height: 100%;
+      background: var(--calc-bg);
+      padding: 20px;
+      transition: 0.3s;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+      z-index: 10;
+    }
+
+    .settings.open { right: 0; }
+
+    .settings h3 { margin-bottom: 15px; }
+    .settings button {
+      width: 100%;
+      margin: 5px 0;
+      height: 45px;
+      border-radius: 10px;
+    }
+    
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+    }
+    
+    /* Pulse effect */
+    button.pulse::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: var(--glow);
+      transform: translate(-50%, -50%);
+      animation: pulse 0.4s ease-out;
+    }
+    
+    @keyframes pulse {
+      to {
+        width: 200%;
+        height: 200%;
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button onclick="clearAll()">C</button>
+    <button onclick="toggleSettings()">⋯</button>
+  </div>
+
+  <div class="display">
+    <div id="history"></div>
+    <div id="output">0</div>
+  </div>
+
+  <div class="keys">
+    <button class="clear" onclick="btnPress('clear', this)">C</button>
+    <button class="op" onclick="btnPress('/', this)">÷</button>
+    <button class="op" onclick="btnPress('*', this)">×</button>
+    <button class="op" onclick="btnPress('back', this)">⌫</button>
+    
+    <button onclick="btnPress('7', this)">7</button>
+    <button onclick="btnPress('8', this)">8</button>
+    <button onclick="btnPress('9', this)">9</button>
+    <button class="op" onclick="btnPress('-', this)">−</button>
+    
+    <button onclick="btnPress('4', this)">4</button>
+    <button onclick="btnPress('5', this)">5</button>
+    <button onclick="btnPress('6', this)">6</button>
+    <button class="op" onclick="btnPress('+', this)">+</button>
+    
+    <button onclick="btnPress('1', this)">1</button>
+    <button onclick="btnPress('2', this)">2</button>
+    <button onclick="btnPress('3', this)">3</button>
+    <button class="equals" onclick="btnPress('=', this)">=</button>
+    
+    <button onclick="btnPress('%', this)">%</button>
+    <button onclick="btnPress('0', this)">0</button>
+    <button onclick="btnPress('.', this)">.</button>
+  </div>
+
+  <div class="settings" id="settings">
+    <h3>Settings</h3>
+    <button onclick="setTheme('')">White</button>
+    <button onclick="setTheme('dark')">Dark</button>
+    <button onclick="setTheme('darkblue')">Dark Blue</button>
+    
+    <div class="toggle-row">
+      <span>Sound</span>
+      <input type="checkbox" id="soundToggle" checked onchange="toggleSound()">
+    </div>
+    
+    <div class="toggle-row">
+      <span>Vibration</span>
+      <input type="checkbox" id="vibToggle" checked onchange="toggleVib()">
+    </div>
+    
+    <button onclick="clearHistory()">Clear History</button>
+    <button onclick="toggleSettings()">Close</button>
+  </div>
+
+  <script>
+    let expression = '';
+    let history = JSON.parse(localStorage.getItem('calcHistory') || '[]');
+    let soundOn = localStorage.getItem('soundOn') !== 'false';
+    let vibOn = localStorage.getItem('vibOn') !== 'false';
+    
+    document.getElementById('soundToggle').checked = soundOn;
+    document.getElementById('vibToggle').checked = vibOn;
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep() {
+      if (!soundOn) return;
+      let osc = audioCtx.createOscillator();
+      let gain = audioCtx.createGain();
+      osc.frequency.value = 800;
+      gain.gain.value = 0.05;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    function vibrate() {
+      if (vibOn && navigator.vibrate) {
+        navigator.vibrate(15);
+      }
+    }
+
+    function btnPress(val, btn) {
+      playBeep();
+      vibrate();
+      
+      // Add pulse animation
+      btn.classList.add('pulse');
+      setTimeout(() => btn.classList.remove('pulse'), 400);
+      
+      if (val === 'clear') clearAll();
+      else if (val === 'back') backspace();
+      else if (val === '=') calculate();
+      else append(val);
+    }
+
+    function updateDisplay() {
+      document.getElementById('output').innerText = expression || '0';
+      document.getElementById('history').innerText = history.slice(-3).join('\n');
+    }
+
+    function append(val) {
+      expression += val;
+      updateDisplay();
+    }
+
+    function backspace() {
+      expression = expression.slice(0, -1);
+      updateDisplay();
+    }
+
+    function clearAll() {
+      expression = '';
+      updateDisplay();
+    }
+
+    function calculate() {
+      try {
+        let result = eval(expression.replace('%', '/100'));
+        history.push(expression + ' = ' + result);
+        localStorage.setItem('calcHistory', JSON.stringify(history));
+        expression = result.toString();
+        updateDisplay();
+      } catch {
+        document.getElementById('output').innerText = 'Error';
+        expression = '';
+      }
+    }
+
+    function toggleSettings() {
+      document.getElementById('settings').classList.toggle('open');
+    }
+
+    function setTheme(theme) {
+      document.body.className = theme;
+      localStorage.setItem('theme', theme);
+    }
+
+    function clearHistory() {
+      history = [];
+      localStorage.removeItem('calcHistory');
+      updateDisplay();
+    }
+    
+    function toggleSound() {
+      soundOn = document.getElementById('soundToggle').checked;
+      localStorage.setItem('soundOn', soundOn);
+    }
+    
+    function toggleVib() {
+      vibOn = document.getElementById('vibToggle').checked;
+      localStorage.setItem('vibOn', vibOn);
+    }
+
+    document.body.className = localStorage.getItem('theme') || '';
+    updateDisplay();
+  </script>
+</body>
+</html>
