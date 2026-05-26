@@ -1,2 +1,2 @@
-# Login-page--free
-A login Page I created using Just, HTML, CSS
+# Calculatot-for-free
+A calculator I created using Just, HTML, CSS
